@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title id="pageTitle">Prime Moviz</title>
+    <style>
+    /* --- YouTube Style Dark Theme Variables --- */
+    :root {
+        --primary-color: #ffffff;
+        --yt-red: #ff0000;
+        --secondary-color: #aaaaaa;
+        --bg-color: #0f0f0f;
+        --card-bg: #1e1e1e;
+        --text-color: #ffffff;
+        --text-muted: #aaaaaa;
+        --button-bg-light: #272727;
+        --button-hover: #3f3f3f; 
+        --link-color: #3ea6ff;
+        --border-color: #333333;
+    }
+
+    body {
+        font-family: 'Roboto', sans-serif;
+        background-color: var(--bg-color); 
+        color: var(--text-color); 
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+    }
+    
+    a {
+        text-decoration: none;
+        color: var(--text-color);
+    }
+
+    .main-content {
+        max-width: 100%;
+        margin: 0 auto;
+        padding-bottom: 30px; 
+    }
+    
+    .video-player-wrapper {
+        width: 100%;
+        padding-bottom: 56.25%;
+        position: relative;
+        background-color: #000;
+    }
+    
+    .video-player-wrapper iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+        z-index: 10;
+    }
+
+    .loader {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(15, 15, 15, 0.9); 
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 20;
+        flex-direction: column;
+    }
+
+    .spinner {
+        border: 4px solid #333; 
+        border-top: 4px solid var(--yt-red); 
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .content-details {
+        padding: 15px; 
+    }
+
+    .content-details h1 {
+        color: var(--text-color);
+        font-size: 1.25em; 
+        font-weight: 600; 
+        margin: 0 0 5px 0;
+        line-height: 1.3;
+        cursor: pointer;
+    }
+    
+    .view-count-row {
+        display: flex;
+        justify-content: flex-end; 
+        align-items: center;
+        margin-bottom: 15px;
+        min-height: 20px; 
+    }
+
+    #descriptionTrigger {
+        color: var(--link-color); 
+        font-size: 0.85em; 
+        background: none; 
+        border: none; 
+        padding: 0; 
+        cursor: pointer;
+        display: block; 
+        font-weight: 500;
+        margin-left: auto; 
+    }
+    
+    .action-bar-container {
+        display: flex;
+        justify-content: flex-start;
+        gap: 12px;
+        padding: 0;
+        margin-bottom: 15px;
+    }
+
+    .action-button {
+        background: var(--button-bg-light);
+        border: none;
+        color: var(--text-color);
+        cursor: pointer;
+        padding: 8px 15px; 
+        border-radius: 20px; 
+        transition: background-color 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 500;
+        font-size: 0.9em;
+        gap: 5px;
+        flex-shrink: 0;
+    }
+    
+    #shareButton, #downloadButton {
+        background-color: var(--button-bg-light); 
+        color: var(--text-color); 
+    }
+    
+    #downloadButton:hover {
+        background-color: var(--button-hover);
+    }
+
+    .channel-section {
+        display: flex;
+        align-items: center;
+        padding: 10px 15px;
+        border-top: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 15px;
+    }
+
+    .channel-avatar img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 10px;
+        flex-shrink: 0;
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+        cursor: pointer;
+    }
+
+    .channel-info h3 {
+        margin: 0;
+        font-size: 1em;
+        font-weight: 700; 
+        color: var(--text-color);
+        cursor: pointer;
+    }
+
+    #bestMovieText {
+        display: block;
+        margin: 0;
+        font-size: 0.8em;
+        color: var(--text-muted);
+    }
+
+    .subscribe-button {
+        margin-left: auto;
+        padding: 8px 15px;
+        background-color: #ffffff;
+        color: #000000;
+        font-weight: bold;
+        border-radius: 20px;
+        font-size: 0.9em;
+        cursor: pointer;
+        flex-shrink: 0;
+        border: none;
+        text-decoration: none;
+        display: inline-block;
+        line-height: 1.2;
+    }
+
+    .description-modal {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: calc(100vh - 56.25vw); 
+        max-height: 90vh; 
+        background-color: var(--card-bg);
+        z-index: 2000;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+        transform: translateY(100%);
+        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
+        will-change: transform; 
+    }
+
+    .description-modal.active {
+        transform: translateY(0);
+    }
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between; 
+        align-items: center;
+        padding: 0 15px; 
+        padding-top: 5px; 
+        border-bottom: 1px solid var(--border-color);
+        flex-shrink: 0;
+        min-height: 50px; 
+        position: relative; 
+    }
+    
+    .modal-handle {
+        width: 40px;
+        height: 4px;
+        background-color: #555;
+        border-radius: 2px;
+        position: absolute;
+        top: 8px; 
+        left: 50%;
+        transform: translateX(-50%);
+        cursor: grab;
+    }
+    
+    .close-button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text-muted);
+        padding: 15px 0; 
+        margin-left: auto; 
+    }
+    
+    .modal-title-text {
+        font-size: 1.2em;
+        font-weight: 500;
+        padding: 15px 0; 
+        color: var(--text-color);
+    }
+
+    .modal-content {
+        padding: 0 15px 15px 15px; 
+        flex-grow: 1;
+        overflow-y: auto;
+        color: var(--text-color);
+    }
+
+    .modal-content a, .modal-content .hashtag {
+        color: var(--link-color); 
+        text-decoration: none;
+    }
+
+    .related-videos-section {
+        padding: 0 15px;
+        margin-top: 20px;
+    }
+
+    .related-videos-section h2 {
+        font-size: 1.1em;
+        margin-bottom: 15px;
+    }
+
+    .related-card {
+        display: flex; 
+        margin-bottom: 15px; 
+        gap: 12px;
+    }
+    
+    .related-card-thumbnail-container {
+        width: 120px; 
+        height: 68px; 
+        flex-shrink: 0;
+        position: relative;
+    }
+
+    .related-card-thumbnail {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; 
+        border-radius: 8px;
+        background-color: #333;
+    }
+
+    .related-card-details {
+        flex-grow: 1;
+        min-width: 0; 
+    }
+
+    .related-card-title {
+        font-size: 0.85em; 
+        font-weight: 500; 
+        line-height: 1.3; 
+        color: var(--text-color);
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        margin: 0 0 4px 0;
+    }
+    
+    .related-channel-name {
+        font-size: 0.75em;
+        color: var(--text-muted);
+        margin: 0;
+    }
+</style>
+<script src="https://pl27826264.effectivegatecpm.com/1a/91/83/1a918398f2501ec4856526bbb3e38627.js"></script>
+</head>
+<body>
+
+    <div class="main-content">
+        <div class="video-player-wrapper">
+            <div id="videoLoader" class="loader">
+                <div class="spinner"></div>
+                <p style="color: var(--text-muted); margin-top: 15px;">Video is loading, please wait...</p>
+            </div>
+            <iframe id="videoFrame" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="display:none;"></iframe>
+        </div>
+        
+        <div class="content-details">
+            <h1 id="videoTitleDisplay">Video Loading...</h1>
+            
+            <div class="view-count-row">
+                <button id="descriptionTrigger" style="display:none;">See More</button>
+            </div>
+            
+            <p id="errorMessage" style="color:var(--yt-red); display:none; font-weight:bold; margin:0 0 15px 0;"></p>
+
+            <div class="action-bar-container">
+                <button id="shareButton" class="action-button">
+                    <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.5 2.5 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5m-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3"/></svg>
+                    <span>Share</span>
+                </button>
+                <button id="downloadButton" class="action-button">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2z"/></svg>
+                    <span>Download</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="channel-section">
+            <a href="index.html" class="channel-avatar">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSOvZbUbROccttkrrmZo2qhNVr5KpNzbuKWb5UWBt5gz4A5HUuR_KOIyIOF&s=10" alt="Logo">
+            </a>
+            <div class="channel-info">
+                <h3 id="channelName" onclick="window.location.href='index.html'">Viral Video +</h3>
+                <p id="bestMovieText">Subscribe for all latest update</p>
+            </div>
+            <a href="https://t.me/bdvirallink2k26" target="_blank" class="subscribe-button">Subscribe</a>
+        </div>
+        
+        <div class="related-videos-section" style="display:none;" id="relatedVideosSection">
+            <h2>Related Videos</h2>
+            <div class="related-video-grid" id="relatedVideoGrid"></div>
+        </div>
+    </div>
+
+    <div id="descriptionModal" class="description-modal">
+        <div class="modal-header">
+            <div class="modal-handle"></div> <h2 class="modal-title-text">Description</h2>
+            <button class="close-button" id="closeModalButton">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M18.3 5.71a.996.996 0 0 0-1.41 0L12 10.59 7.11 5.7a.996.996 0 1 0-1.41 1.41L10.59 12 5.7 16.89a.996.996 0 1 0 1.41 1.41L12 13.41l4.89 4.88a.996.996 0 1 0 1.41-1.41L13.41 12l4.88-4.89c.38-.38.38-1.02 0-1.4z"/></svg>
+            </button>
+        </div>
+        <div class="modal-content">
+            <h3 id="modalTitle" style="font-weight: 500; font-size: 1.1em;"></h3>
+            <p id="modalDescriptionContent" style="margin-top: 10px;"></p> 
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBwgMG6fOHbI43bNkB6ZwylvBDmt7Kr7Hk",
+            authDomain: "service-59f79.firebaseapp.com",
+            projectId: "service-59f79",
+            storageBucket: "service-59f79.firebasestorage.app",
+            messagingSenderId: "893383656987",
+            appId: "1:893383656987:web:32d37e8bbf7ede8a17dabe",
+            measurementId: "G-4ZC155ZC6L"
+        };
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const videosRef = ref(database, 'videos');
+        
+        const AD_LINK = "https://benevolencecompromisefaint.com/mhesd05rv?key=33ec68ccce11f5dea9583de1d280f5c3";
+
+        const videoFrame = document.getElementById('videoFrame');
+        const videoTitleDisplay = document.getElementById('videoTitleDisplay');
+        const videoLoader = document.getElementById('videoLoader');
+        const relatedVideoGrid = document.getElementById('relatedVideoGrid');
+        const downloadButton = document.getElementById('downloadButton');
+        const descriptionModal = document.getElementById('descriptionModal');
+
+        let allVideos = [];
+        let currentDescription = '';
+
+        function getQueryParam(param) {
+            return new URLSearchParams(window.location.search).get(param);
+        }
+
+        // এ্যাড রিডাইরেক্ট লজিক (১ম বার ক্লিক করলে বিজ্ঞাপন, ২য় বার আসল কাজ)
+        function handleActionRedirect(actionType, targetData) {
+            const hasClicked = sessionStorage.getItem(`clicked_${actionType}_${targetData.key || 'dl'}`);
+            
+            if (!hasClicked) {
+                sessionStorage.setItem(`clicked_${actionType}_${targetData.key || 'dl'}`, "true");
+                window.open(AD_LINK, '_blank');
+            } else {
+                if (actionType === 'video') {
+                    window.location.href = `player.html?key=${targetData.key}`;
+                } else if (actionType === 'download') {
+                    if (targetData.url) {
+                        window.open(targetData.url, '_blank');
+                    } else {
+                        alert('No download link available.');
+                    }
+                }
+            }
+        }
+
+        function createRelatedVideoCard(video) {
+            const card = document.createElement('div');
+            card.className = 'related-card';
+            card.style.cursor = 'pointer';
+            
+            card.innerHTML = `
+                <div class="related-card-thumbnail-container">
+                    <img src="${video.thumbnailURL}" class="related-card-thumbnail">
+                </div>
+                <div class="related-card-details">
+                    <h3 class="related-card-title">${video.title}</h3>
+                    <p class="related-channel-name">OnFlix</p>
+                </div>
+            `;
+
+            card.onclick = () => handleActionRedirect('video', video);
+            return card;
+        }
+
+        function formatDescription(text) {
+            let formatted = text.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+            formatted = formatted.replace(/#([\w\u0980-\u09FF]+)/g, '<span class="hashtag">#$1</span>');
+            const urlRegex = /(\b(?:https?:\/\/|www\.|t\.me\/)[^\s/$.?#].[^\s]*)/gi;
+            formatted = formatted.replace(urlRegex, match => {
+                let url = match.startsWith('http') ? match : 'https://' + match;
+                return `<a href="${url}" target="_blank">${match}</a>`;
+            });
+            return formatted.replace(/\n/g, '<br>');
+        }
+
+        async function loadVideoData() {
+            const videoKey = getQueryParam('key');
+            if (!videoKey) return;
+
+            try {
+                const snapshot = await get(videosRef);
+                const data = snapshot.val();
+                if (!data) return;
+
+                allVideos = Object.keys(data).map(key => ({ key, ...data[key] }));
+                const videoData = data[videoKey];
+
+                if (videoData) {
+                    videoTitleDisplay.textContent = videoData.title;
+                    currentDescription = formatDescription(videoData.description || '');
+                    document.getElementById('descriptionTrigger').style.display = videoData.description ? 'block' : 'none';
+                    
+                    let embedUrl = videoData.embedLink;
+                    if (embedUrl.includes('youtube.com') || embedUrl.includes('youtu.be')) {
+                        const ytId = embedUrl.match(/(?:v=|be\/|embed\/)([\w-]{11})/)[1];
+                        embedUrl = `https://www.youtube.com/embed/${ytId}?autoplay=1`;
+                    }
+                    videoFrame.src = embedUrl;
+                    videoFrame.onload = () => { videoLoader.style.display = 'none'; videoFrame.style.display = 'block'; };
+
+                    downloadButton.onclick = () => handleActionRedirect('download', { url: videoData.downloadLink });
+
+                    const related = allVideos.filter(v => v.category === videoData.category && v.key !== videoKey);
+                    if (related.length > 0) {
+                        document.getElementById('relatedVideosSection').style.display = 'block';
+                        related.slice(0, 10).forEach(v => relatedVideoGrid.appendChild(createRelatedVideoCard(v)));
+                    }
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        const openModal = () => {
+            document.getElementById('modalTitle').textContent = videoTitleDisplay.textContent;
+            document.getElementById('modalDescriptionContent').innerHTML = currentDescription;
+            descriptionModal.classList.add('active');
+            descriptionModal.style.transform = 'translateY(0)';
+        };
+        const closeModal = () => {
+            descriptionModal.classList.remove('active');
+            descriptionModal.style.transform = 'translateY(100%)';
+        };
+
+        document.getElementById('descriptionTrigger').onclick = openModal;
+        videoTitleDisplay.onclick = openModal;
+        document.getElementById('closeModalButton').onclick = closeModal;
+
+        document.getElementById('shareButton').onclick = async () => {
+            try {
+                await navigator.share({ title: document.title, url: window.location.href });
+            } catch (e) {
+                navigator.clipboard.writeText(window.location.href);
+                alert('Link Copied!');
+            }
+        };
+
+        loadVideoData();
+    </script>
+    <script src="https://pl27839228.effectivegatecpm.com/76/73/9b/76739b36ed6d9c5c41b26e1c1304bcf8.js"></script>
+</body>
+</html>
